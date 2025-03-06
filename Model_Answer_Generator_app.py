@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar  6 00:13:19 2025
-
-@author: Mohammed_magdy
-"""
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -28,8 +21,6 @@ def generate_highlighted_scantron(correct_answers, df_coords, img):
     ax.imshow(img)
     plt.axis('off')
     
-    highlight_logs = []
-    
     # Loop through each correct answer and add a circle
     for q, correct in correct_answers.items():
         # Match based on question and answer (case-insensitive)
@@ -47,13 +38,7 @@ def generate_highlighted_scantron(correct_answers, df_coords, img):
                 linestyle='-'          # Solid border
             )
             ax.add_patch(circle)
-            log = f"Highlighted Q{q} Option {correct} at (x={x:.2f}, y={y:.2f})"
-            highlight_logs.append(log)
-        else:
-            log = f"Coordinate for Q{q} Option {correct} not found."
-            highlight_logs.append(log)
-    
-    return fig, highlight_logs
+    return fig
 
 # --- Streamlit App Interface ---
 st.title("Scantron Highlighter App")
@@ -71,31 +56,27 @@ if uploaded_file is not None:
         df_coords = load_coordinates()
         img = load_scantron_image()
         
-        # Generate the highlighted scantron image
-        fig, logs = generate_highlighted_scantron(correct_answers, df_coords, img)
-        
-        st.subheader("Highlighted Scantron")
-        st.pyplot(fig)
-        
-        st.write("**Highlights Info:**")
-        for log in logs:
-            st.write(log)
-        
-        # Save the image to a buffer for download
-        buf = BytesIO()
-        fig.savefig(buf, format="jpg", dpi=300, bbox_inches='tight')
-        buf.seek(0)
-        
-        # Button: Download highlighted scantron image
-        st.download_button(
-            label="Download Highlighted Scantron",
-            data=buf,
-            file_name="Colored_Scantron.jpg",
-            mime="image/jpeg"
-        )
-        
-        # Button: Generate reference answer (display correct answers table)
-        if st.button("Generate Reference Answer"):
+        # Button: Generate Answer
+        if st.button("Generate Answer"):
+            # Generate the highlighted scantron image
+            fig = generate_highlighted_scantron(correct_answers, df_coords, img)
+            
+            st.subheader("Highlighted Scantron")
+            st.pyplot(fig)
+            
+            # Save the image to a buffer for download
+            buf = BytesIO()
+            fig.savefig(buf, format="jpg", dpi=300, bbox_inches='tight')
+            buf.seek(0)
+            
+            st.download_button(
+                label="Download Highlighted Scantron",
+                data=buf,
+                file_name="Colored_Scantron.jpg",
+                mime="image/jpeg"
+            )
+            
+            # Display the reference answers table
             st.subheader("Reference Answers")
             st.table(df_correct_answers)
             
